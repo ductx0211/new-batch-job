@@ -23,7 +23,7 @@ public class BatchConfiguration {
         JobRepositoryFactoryBean factory = new JobRepositoryFactoryBean();
         factory.setDataSource(dataSource);
         factory.setTransactionManager(transactionManager);
-        factory.setDatabaseType("H2");
+        factory.setDatabaseType("ORACLE");
         factory.setIsolationLevelForCreate("ISOLATION_SERIALIZABLE");
         factory.afterPropertiesSet();
         return factory.getObject();

@@ -62,18 +62,18 @@
         </dependency>
         
         <!-- Database -->
-        <!-- H2 in-memory database -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <!-- Oracle database (comment lại khi cần dùng Oracle) -->
-        <!--
+        <!-- Oracle database -->
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
             <artifactId>ojdbc8</artifactId>
             <version>21.9.0.0</version>
+        </dependency>
+        <!-- H2 in-memory database (comment lại khi dùng Oracle, chỉ dùng cho testing) -->
+        <!--
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
         </dependency>
         -->
         

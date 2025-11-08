@@ -6,21 +6,30 @@ spring:
     keep-alive: true
     register-shutdown-hook: true
   datasource:
-    # H2 in-memory database
-    url: jdbc:h2:mem:batchdb;MODE=Oracle;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password: 
-    driver-class-name: org.h2.Driver
+    # Oracle database
+    url: jdbc:oracle:thin:@localhost:1521:XE
+    username: your_username
+    password: your_password
+    driver-class-name: oracle.jdbc.OracleDriver
+    # Connection pool settings
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   jpa:
-    # database-platform không cần thiết, Hibernate sẽ tự động detect H2 dialect
+    # Oracle database platform
+    database-platform: org.hibernate.dialect.Oracle12cDialect
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none  # Sử dụng none cho production, hoặc update/create cho development
+      # ddl-auto: update  # Uncomment để tự động tạo/update tables
     show-sql: false
     open-in-view: false
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
   batch:
     job:
       enabled: true
@@ -30,6 +39,10 @@ spring:
 application:
   schedule:
     enabled: true
+
+batch:
+  init:
+    sample-data: true  # Set to true để tự động tạo sample transaction data
 
 server:
   port: 8084

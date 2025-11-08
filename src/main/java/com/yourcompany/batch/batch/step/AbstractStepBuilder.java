@@ -188,8 +188,8 @@ public abstract class AbstractStepBuilder<I, O> {
                         log.error("AbstractStepBuilder.afterChunkError", throwable);
                         String message = throwable.getMessage();
                         if (message != null && message.length() > 4000) {
-                            message = message.substring(0, 4000);
-                        }
+                        message = message.substring(0, 4000);
+                    }
                         addJobError(message, throwable);
                     }
                 }

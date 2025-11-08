@@ -33,7 +33,8 @@ public class SampleJob extends AbstractJob {
     protected Job job() {
         return createJobBuilder(JOB_NAME)
             .incrementer(new RunIdIncrementer())
-            .start(stepFactory.getStep(SampleStepBuilder.class))
+            .start(stepFactory.getStep(TransactionStepBuilder.class))
+            .next(stepFactory.getStep(SampleStepBuilder.class))
             .next(stepFactory.getStepTasklet(SampleTasklet.class))
             .listener(jobCompletionListener)
             .build();
