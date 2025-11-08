@@ -5,6 +5,7 @@ import com.yourcompany.batch.batch.step.AbstractStepBuilder;
 import com.yourcompany.batch.domain.Transaction;
 import com.yourcompany.batch.domain.enumeration.TransactionStatus;
 import com.yourcompany.batch.repository.TransactionRepository;
+import com.yourcompany.batch.service.ExternalApiService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
@@ -32,6 +33,9 @@ public class TransactionStepBuilder extends AbstractStepBuilder<Transaction, Tra
 
     @Autowired
     private TransactionRepository transactionRepository;
+
+    @Autowired
+    private ExternalApiService externalApiService;
 
     @Override
     protected String getStepName() {
@@ -74,6 +78,26 @@ public class TransactionStepBuilder extends AbstractStepBuilder<Transaction, Tra
                     log.warn("Transaction {} has null amount", transaction.getId());
                 }
                 
+                // Gọi API bên ngoài để xử lý transaction
+                boolean apiSuccess = externalApiService.processTransaction(
+                    transaction.getId(), 
+                    transaction.getBranch()
+                );
+                
+                if (!apiSuccess) {
+                    // Nếu call API thất bại, cập nhật status = 'ERROR' và throw exception
+                    log.error("External API call failed for transaction id={}, branch={}", 
+                        transaction.getId(), transaction.getBranch());
+                    transactionRepository.updateTransactionStatus(
+                        transaction.getId(), 
+                        TransactionStatus.ERROR.getValue()
+                    );
+                    throw new RuntimeException("External API call failed for transaction id=" + transaction.getId());
+                }
+                
+                log.info("Successfully processed transaction via external API: id={}, branch={}", 
+                    transaction.getId(), transaction.getBranch());
+                
                 // Có thể modify transaction nếu cần
                 // transaction.setProcessed(true);
                 
@@ -81,7 +105,17 @@ public class TransactionStepBuilder extends AbstractStepBuilder<Transaction, Tra
             } catch (Exception e) {
                 // Nếu có lỗi trong processor, cập nhật status = 'ERROR'
                 log.error("Error processing transaction id={}: {}", transaction.getId(), e.getMessage(), e);
-                transactionRepository.updateTransactionStatus(transaction.getId(), TransactionStatus.ERROR.getValue());
+                
+                // Đảm bảo status được cập nhật thành ERROR (nếu chưa được cập nhật)
+                try {
+                    transactionRepository.updateTransactionStatus(
+                        transaction.getId(), 
+                        TransactionStatus.ERROR.getValue()
+                    );
+                } catch (Exception updateError) {
+                    log.error("Error updating transaction status to ERROR: {}", updateError.getMessage(), updateError);
+                }
+                
                 throw e; // Re-throw để Spring Batch skip item này
             }
         };

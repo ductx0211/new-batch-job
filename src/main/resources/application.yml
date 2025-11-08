@@ -44,6 +44,16 @@ batch:
   init:
     sample-data: true  # Set to true để tự động tạo sample transaction data
 
+# External API Configuration
+external:
+  api:
+    url: http://localhost:8080/api/transaction  # URL của API bên ngoài
+    timeout:
+      connect: 10000  # Connection timeout (milliseconds)
+      read: 30000     # Read timeout (milliseconds)
+    enable:
+      logging: false  # Enable logging for requests/responses (set to true for debugging)
+
 server:
   port: 8084
   servlet:
