@@ -8,13 +8,19 @@ CREATE OR REPLACE PACKAGE BODY TRANSACTION_PKG AS
     PROCEDURE get_transactions_10(p_cursor OUT SYS_REFCURSOR) AS
         v_ids SYS.ODCINUMBERLIST := SYS.ODCINUMBERLIST();
     BEGIN
-        -- Collect the IDs of the rows we are going to process (lock them to avoid race conditions)
+        -- Collect IDs of rows to process (lock them to avoid race conditions)
         SELECT id
         BULK COLLECT INTO v_ids
-        FROM transaction
-        WHERE status IS NULL
-        ORDER BY create_date ASC, id ASC
-        FETCH FIRST 10 ROWS ONLY
+        FROM (
+            SELECT id
+            FROM (
+                SELECT id
+                FROM transaction
+                WHERE status IS NULL
+                ORDER BY create_date ASC, id ASC
+            )
+            WHERE ROWNUM <= 10
+        )
         FOR UPDATE SKIP LOCKED;
 
         -- If no rows found, return empty cursor
