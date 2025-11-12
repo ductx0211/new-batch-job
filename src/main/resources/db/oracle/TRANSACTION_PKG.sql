@@ -6,35 +6,47 @@ END TRANSACTION_PKG;
 CREATE OR REPLACE PACKAGE BODY TRANSACTION_PKG AS
 
     PROCEDURE get_transactions_10(p_cursor OUT SYS_REFCURSOR) AS
+        v_ids SYS.ODCINUMBERLIST := SYS.ODCINUMBERLIST();
     BEGIN
-        OPEN p_cursor FOR
-            WITH selected AS (
-                SELECT id
-                FROM transaction
-                WHERE status IS NULL
-                ORDER BY create_date ASC, id ASC
-                FETCH FIRST 10 ROWS ONLY
-            )
-            SELECT t.id,
-                   t.branch,
-                   t.name,
-                   t.amount,
-                   t.create_date,
-                   t.status
-            FROM transaction t
-            WHERE t.id IN (SELECT id FROM selected)
-            ORDER BY t.create_date ASC, t.id ASC
-            FOR UPDATE OF t.status SKIP LOCKED;
+        -- Collect the IDs of the rows we are going to process (lock them to avoid race conditions)
+        SELECT id
+        BULK COLLECT INTO v_ids
+        FROM transaction
+        WHERE status IS NULL
+        ORDER BY create_date ASC, id ASC
+        FETCH FIRST 10 ROWS ONLY
+        FOR UPDATE SKIP LOCKED;
 
+        -- If no rows found, return empty cursor
+        IF v_ids.COUNT = 0 THEN
+            OPEN p_cursor FOR
+                SELECT id,
+                       branch,
+                       name,
+                       amount,
+                       create_date,
+                       status
+                FROM transaction
+                WHERE 1 = 0;
+            RETURN;
+        END IF;
+
+        -- Return the locked rows
+        OPEN p_cursor FOR
+            SELECT id,
+                   branch,
+                   name,
+                   amount,
+                   create_date,
+                   status
+            FROM transaction
+            WHERE id IN (SELECT COLUMN_VALUE FROM TABLE(v_ids))
+            ORDER BY create_date ASC, id ASC;
+
+        -- Update the status of exactly the locked rows to PENDING
         UPDATE transaction
         SET status = 'PENDING'
-        WHERE id IN (
-            SELECT id
-            FROM transaction
-            WHERE status IS NULL
-            ORDER BY create_date ASC, id ASC
-            FETCH FIRST 10 ROWS ONLY
-        );
+        WHERE id IN (SELECT COLUMN_VALUE FROM TABLE(v_ids));
 
         COMMIT;
     END get_transactions_10;
