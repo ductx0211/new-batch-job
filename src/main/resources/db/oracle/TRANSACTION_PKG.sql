@@ -53,3 +53,34 @@ CREATE OR REPLACE PACKAGE BODY TRANSACTION_PKG AS
 
 END TRANSACTION_PKG;
 /
+
+// TEST
+DECLARE
+    v_cursor SYS_REFCURSOR;
+    v_id        transaction.id%TYPE;
+    v_branch    transaction.branch%TYPE;
+    v_name      transaction.name%TYPE;
+    v_amount    transaction.amount%TYPE;
+    v_create    transaction.create_date%TYPE;
+    v_status    transaction.status%TYPE;
+BEGIN
+    TRANSACTION_PKG.get_transactions_10(v_cursor);
+
+    LOOP
+        FETCH v_cursor
+        INTO v_id, v_branch, v_name, v_amount, v_create, v_status;
+        EXIT WHEN v_cursor%NOTFOUND;
+
+        DBMS_OUTPUT.put_line(
+            'ID=' || v_id ||
+            ' | branch=' || v_branch ||
+            ' | name=' || v_name ||
+            ' | amount=' || v_amount ||
+            ' | create_date=' || TO_CHAR(v_create, 'YYYY-MM-DD HH24:MI:SS') ||
+            ' | status(before)=' || NVL(v_status, '<NULL>')
+        );
+    END LOOP;
+
+    CLOSE v_cursor;
+END;
+/
