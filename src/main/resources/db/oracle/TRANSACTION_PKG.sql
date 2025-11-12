@@ -5,26 +5,43 @@ END TRANSACTION_PKG;
 
 CREATE OR REPLACE PACKAGE BODY TRANSACTION_PKG AS
 
-    PROCEDURE get_transactions_10(p_cursor OUT SYS_REFCURSOR) AS
-        v_ids SYS.ODCINUMBERLIST := SYS.ODCINUMBERLIST();
-    BEGIN
-        -- Collect IDs of rows to process (lock them to avoid race conditions)
-        SELECT id
-        BULK COLLECT INTO v_ids
-        FROM (
-            SELECT id
-            FROM (
-                SELECT id
-                FROM transaction
-                WHERE status IS NULL
-                ORDER BY create_date ASC, id ASC
-            )
-            WHERE ROWNUM <= 10
-        )
-        FOR UPDATE SKIP LOCKED;
+    TYPE t_id_tab IS TABLE OF transaction.id%TYPE;
 
-        -- If no rows found, return empty cursor
-        IF v_ids.COUNT = 0 THEN
+    PROCEDURE get_transactions_10(p_cursor OUT SYS_REFCURSOR) AS
+        CURSOR c_transactions IS
+            SELECT id,
+                   branch,
+                   name,
+                   amount,
+                   create_date,
+                   status
+            FROM transaction
+            WHERE status IS NULL
+            ORDER BY create_date ASC, id ASC
+            FOR UPDATE SKIP LOCKED;
+
+        v_row c_transactions%ROWTYPE;
+        v_ids t_id_tab := t_id_tab();
+        v_count PLS_INTEGER := 0;
+    BEGIN
+        OPEN c_transactions;
+
+        LOOP
+            FETCH c_transactions INTO v_row;
+            EXIT WHEN c_transactions%NOTFOUND OR v_count >= 10;
+
+            v_count := v_count + 1;
+            v_ids.EXTEND;
+            v_ids(v_count) := v_row.id;
+
+            UPDATE transaction
+            SET status = 'PENDING'
+            WHERE CURRENT OF c_transactions;
+        END LOOP;
+
+        CLOSE c_transactions;
+
+        IF v_count = 0 THEN
             OPEN p_cursor FOR
                 SELECT id,
                        branch,
@@ -37,7 +54,6 @@ CREATE OR REPLACE PACKAGE BODY TRANSACTION_PKG AS
             RETURN;
         END IF;
 
-        -- Return the locked rows
         OPEN p_cursor FOR
             SELECT id,
                    branch,
@@ -48,11 +64,6 @@ CREATE OR REPLACE PACKAGE BODY TRANSACTION_PKG AS
             FROM transaction
             WHERE id IN (SELECT COLUMN_VALUE FROM TABLE(v_ids))
             ORDER BY create_date ASC, id ASC;
-
-        -- Update the status of exactly the locked rows to PENDING
-        UPDATE transaction
-        SET status = 'PENDING'
-        WHERE id IN (SELECT COLUMN_VALUE FROM TABLE(v_ids));
 
         COMMIT;
     END get_transactions_10;
@@ -90,3 +101,5 @@ BEGIN
     CLOSE v_cursor;
 END;
 /
+
+
