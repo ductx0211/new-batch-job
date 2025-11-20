@@ -1,0 +1,4 @@
+com.yourcompany.batch.config.BatchJobEntityScanConfiguration
+com.yourcompany.batch.config.BatchJobJpaRepositoriesConfiguration
+com.yourcompany.batch.config.BatchJobAutoConfiguration
+

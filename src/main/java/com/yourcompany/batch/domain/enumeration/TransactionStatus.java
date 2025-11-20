@@ -13,6 +13,11 @@ public enum TransactionStatus {
      * Đang được job xử lý
      */
     JOB_PROCESSING("JOB_PROCESSING"),
+
+    /**
+     * Đã được lock để xử lý (đang chờ xử lý)
+     */
+    PENDING("PENDING"),
     
     /**
      * Đã xử lý thành công

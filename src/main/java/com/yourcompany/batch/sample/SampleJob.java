@@ -10,9 +10,12 @@ import com.yourcompany.batch.batch.AbstractJob;
 import com.yourcompany.batch.batch.listener.JobCompletionListener;
 import com.yourcompany.batch.batch.step.StepFactory;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Sample Job để demo cách sử dụng framework
  */
+@Slf4j
 @Component
 public class SampleJob extends AbstractJob {
 
@@ -49,10 +52,11 @@ public class SampleJob extends AbstractJob {
     // @Scheduled(cron = "0 */5 * * * ?") // Mỗi 5 phút
     @SchedulerLock(
         name = "SAMPLE_JOB_SCHEDULER_LOCK",
-        lockAtMostFor = "10m",  // Lock tối đa 10 phút (nếu job crash, lock sẽ tự động release sau 10 phút)
-        lockAtLeastFor = "5m"   // Lock tối thiểu 5 phút (tránh chạy quá thường xuyên)
+        lockAtMostFor = "3m",  // Lock tối đa 10 phút (nếu job crash, lock sẽ tự động release sau 10 phút)
+        lockAtLeastFor = "1m"   // Lock tối thiểu 5 phút (tránh chạy quá thường xuyên)
     )
     public void schedule() {
+        log.info("Running schedule job");
         runBySchedule();
     }
 

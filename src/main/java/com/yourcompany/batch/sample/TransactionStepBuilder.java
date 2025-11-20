@@ -57,9 +57,9 @@ public class TransactionStepBuilder extends AbstractStepBuilder<Transaction, Tra
 
     @Override
     protected ItemReader<Transaction> reader() {
-        // Initialize reader - limit đã được set trong Oracle Package (10 rows)
+        // Initialize reader - limit đã cấu hình trong reader (10 rows)
         transactionReader.initialize();
-        log.info("TransactionReader initialized for reading transactions from Oracle Package with limit: {}", 
+        log.info("TransactionReader initialized for reading transactions from repository with limit: {}", 
             transactionReader.getPageSize());
         return transactionReader;
     }
@@ -170,7 +170,7 @@ public class TransactionStepBuilder extends AbstractStepBuilder<Transaction, Tra
         super.beforeStep(stepExecution);
         addJobLog(com.yourcompany.batch.domain.enumeration.LogTypeEnum.INFO, 
             "Transaction processing step started", 
-            "Will process transactions from Oracle Package in batches of 10 (limit set in package)");
+            "Will process transactions from repository in batches of 10 (status is set to PENDING when fetched)");
     }
 
     @Override

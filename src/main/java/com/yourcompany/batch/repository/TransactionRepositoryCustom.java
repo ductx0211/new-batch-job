@@ -1,22 +1,21 @@
 package com.yourcompany.batch.repository;
 
-import com.yourcompany.batch.repository.projection.TransactionProjection;
+import com.yourcompany.batch.domain.Transaction;
 
 import java.util.List;
 
 /**
- * Custom repository interface để gọi Oracle Package với projection
+ * Custom repository interface cho các thao tác đặc biệt với Transaction
  */
 public interface TransactionRepositoryCustom {
 
     /**
-     * Lấy 10 rows transaction đầu tiên có status IS NULL theo thời gian xa nhất (create_date ASC)
-     * Sau khi lấy, package sẽ tự động cập nhật status = 'JOB_PROCESSING'
-     * Sử dụng projection để hứng dữ liệu
-     * 
-     * @return Danh sách TransactionProjection (10 rows đầu tiên)
+     * Lấy và lock một số lượng transaction nhất định (status IS NULL) và cập nhật status = 'PENDING'
+     *
+     * @param limit  số lượng tối đa cần lấy
+     * @return danh sách Transaction đã được chuyển sang trạng thái PENDING
      */
-    List<TransactionProjection> getTransactions10Projection();
+    List<Transaction> fetchAndMarkTransactions(int limit);
 
     /**
      * Cập nhật status của transaction

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings
+        xmlns="http://java.sun.com/xml/ns/persistence/orm"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm http://java.sun.com/xml/ns/persistence/orm_2_0.xsd"
+        version="2.0">
+
+    <named-native-query name="findInvoiceStrip">
+        <query>
+            <![CDATA[
+                SELECT
+                    INVOICE_TYPE           As invoiceType,
+                    INVOICE_SERIES         As invoiceSeries,
+                    TOTAL_INVOICE          As totalInvoice,
+                    END_INVOICE            As endInvoice,
+                    TEMPLATE_CODE          As templateCode,
+                    INVOICE_SERIES_TYPE    AS invoiceSeriesType,
+                    INVOICE_CODE           AS invoiceCode,
+                    INVOICE_SERIES_YEAR    AS invoiceSeriesYear
+                FROM INVOICE_STRIP
+                WHERE 1 = 1
+                    AND STATUS  = :status
+                    AND TRANS_TYPE = :transType
+                    AND rownum = 1
+                    AND TT78 = 1
+                    AND INVOICE_SERIES_YEAR = :invoiceSeriesYear
+                ORDER BY ORDER_NO, INVOICE_SERIES
+                    ]]>
+        </query>
+    </named-native-query>
+
+    <named-native-query name="getInvoiceStripLastYear">
+        <query>
+            <![CDATA[
+                SELECT
+                    INVOICE_TYPE           As invoiceType,
+                    INVOICE_SERIES         As invoiceSeries,
+                    TOTAL_INVOICE          As totalInvoice,
+                    END_INVOICE            As endInvoice,
+                    TEMPLATE_CODE          As templateCode,
+                    INVOICE_SERIES_TYPE    AS invoiceSeriesType,
+                    INVOICE_CODE           AS invoiceCode,
+                    INVOICE_SERIES_YEAR    AS invoiceSeriesYear,
+                    ORDER_NO               As orderNo
+                FROM INVOICE_STRIP
+                WHERE 1 = 1
+                    AND TRANS_TYPE = :transType
+                    AND TT78 = 1
+                    AND INVOICE_SERIES_YEAR = :invoiceSeriesYear
+                ORDER BY ORDER_NO, INVOICE_SERIES
+                    ]]>
+        </query>
+    </named-native-query>
+
+    <named-native-query name="findInvoiceStripCycleMonth">
+        <query>
+            <![CDATA[
+                SELECT
+                    INVOICE_TYPE           As invoiceType,
+                    INVOICE_SERIES         As invoiceSeries,
+                    TOTAL_INVOICE          As totalInvoice,
+                    END_INVOICE            As endInvoice,
+                    TEMPLATE_CODE          As templateCode,
+                    INVOICE_SERIES_TYPE    AS invoiceSeriesType,
+                    INVOICE_CODE           AS invoiceCode,
+                    INVOICE_SERIES_YEAR    AS invoiceSeriesYear
+                FROM INVOICE_STRIP
+                WHERE 1 = 1
+                    AND STATUS  = :status
+                    AND TRANS_TYPE = :transType
+                ORDER BY ORDER_NO, INVOICE_SERIES
+                    ]]>
+        </query>
+    </named-native-query>
+</entity-mappings>
